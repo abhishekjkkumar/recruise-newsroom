@@ -1,0 +1,42 @@
+name: Refresh newsroom
+
+on:
+  schedule:
+    - cron: "7,22,37,52 * * * *"   # about every 15 minutes (GitHub may delay a few minutes)
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Collect news
+        env:
+          PREVIOUS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/news.json
+        run: python scripts/build_news.py
+      - name: Stamp version (TV reloads itself when the code changes)
+        run: echo "{\"build\":\"${GITHUB_SHA}\"}" > site/version.json
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4

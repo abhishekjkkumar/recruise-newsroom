@@ -1,0 +1,10 @@
+{
+  "_how_to_edit": "Add Recruise Corner posts below (new joiners, birthdays, anniversaries, wins, events). Each item: title (required), text, label, image (https link or assets/yourphoto.jpg), until (YYYY-MM-DD, hides it after that date). Save, and the TV picks it up within ~15 minutes.",
+  "items": [
+    {
+      "label": "Recruise Corner",
+      "title": "Welcome to Recruise. Business. Technology. People. Ideas.",
+      "text": "Glad you're here. Ask us what's moving in the world of work today."
+    }
+  ]
+}
