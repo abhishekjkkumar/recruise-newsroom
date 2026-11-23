@@ -428,10 +428,33 @@
   setInterval(updatedLabel, 60000);
   keepAwake();
   document.addEventListener("visibilitychange", function () { if (!document.hidden) keepAwake(); }, false);
-  document.addEventListener("dblclick", function () {
-    var d = document.documentElement, f = d.requestFullscreen || d.webkitRequestFullscreen;
-    try { if (f) f.call(d); } catch (e) {}
-  }, false);
+  /* ---------- Full screen: press OK on the TV remote (or click / any key) ---------- */
+  // Browsers only allow full screen after a button press, so we listen for one.
+  function isFull() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.webkitIsFullScreen ||
+      document.mozFullScreenElement || document.msFullscreenElement);
+  }
+  function goFull() {
+    if (isFull()) return;
+    var d = document.documentElement;
+    var f = d.requestFullscreen || d.webkitRequestFullscreen || d.webkitRequestFullScreen || d.mozRequestFullScreen || d.msRequestFullscreen;
+    try { var r = f && f.call(d); if (r && r["catch"]) r["catch"](function () {}); } catch (e) {}
+    hideHint();
+  }
+  function canFull() {
+    var d = document.documentElement;
+    return !!(d.requestFullscreen || d.webkitRequestFullscreen || d.webkitRequestFullScreen || d.mozRequestFullScreen || d.msRequestFullscreen);
+  }
+  function hideHint() { var h = $("fsHint"); if (h) h.style.opacity = "0"; }
+  document.addEventListener("click", goFull, false);
+  document.addEventListener("keydown", goFull, false);
+  if (canFull() && !isFull()) {
+    var hint = $("fsHint");
+    if (hint) {
+      hint.style.opacity = "1";
+      setTimeout(hideHint, 12000);
+    }
+  }
   // Periodic clean reload keeps long-running TV browsers fresh; only when the site is reachable.
   setTimeout(function () {
     getJSON("version.json", function () { location.reload(); });
