@@ -15,6 +15,8 @@ while :; do
   if python scripts/build_news.py && [ -f site/news.json ]; then
     echo "{\"build\":\"$(git rev-parse HEAD)\"}" > site/version.json
     rm -rf /tmp/out && cp -r site /tmp/out && touch /tmp/out/.nojekyll
+    # Version-tag the script and styles so every TV loads the new files after an update
+    sed -i "s/?v=dev/?v=$(git rev-parse --short HEAD)/g" /tmp/out/index.html
     (
       cd /tmp/out &&
       git init -q -b gh-pages &&

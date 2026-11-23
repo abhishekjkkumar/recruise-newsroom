@@ -30,21 +30,22 @@
     economy:   { label: "Economy",             color: "#FFD2BA" },
     curiosity: { label: "Curiosity Corner",    color: "#EEBA2B" },
     recruise:  { label: "Recruise Corner",     color: "#FFD2BA" },
+    gccindex:  { label: "GCC Research · This Week", color: "#7747FF" },
     talent:    { label: "Hiring & Layoffs",    color: "#ED8C1D" }
   };
   // Lighter text versions so small labels stay readable on the dark panels
-  var TEXT_COLOR = { gcc: "#A58BFF", business: "#7FA0FF" };
+  var TEXT_COLOR = { gcc: "#A58BFF", gccindex: "#A58BFF", business: "#7FA0FF" };
   function catColor(cat) { return (CATS[cat] || CATS.business).color; }
   function catText(cat) { return TEXT_COLOR[cat] || catColor(cat); }
 
   // Featured-story mix, weighted to Recruise's world:
   // GCC 20% · Hiring 15% · AI & tech 15% · India business 10% · Startups 10% · Talent 10% · Global 10% · Economy 10%
-  var FEATURE_PATTERN = ["gcc", "hiring", "tech", "business", "gcc", "ta", "startup", "world", "hiring", "gcc",
-    "tech", "economy", "business", "gcc", "hiring", "startup", "ta", "tech", "world", "economy"];
+  var FEATURE_PATTERN = ["gcc", "hiring", "tech", "business", "gccindex", "ta", "startup", "world", "hiring", "gcc",
+    "tech", "economy", "business", "gcc", "hiring", "startup", "ta", "tech", "world", "gccindex"];
   // When a section runs dry, fill from these in order: India & GCC first, then foreign business, then economy
   var FALLBACK = ["gcc", "hiring", "ta", "business", "world", "economy", "tech", "startup"];
   var CARD_SLOTS = [
-    { cats: ["gcc"] },
+    { cats: ["gcc", "gcc", "gccindex"] },
     { cats: ["hiring"] },
     { cats: ["ta", "business"] },
     { cats: ["tech", "startup", "economy"] },
@@ -52,7 +53,7 @@
   ];
 
   var state = {
-    news: null, recruise: [], version: null, generated: null,
+    news: null, recruise: [], gccindex: [], version: null, generated: null,
     badImg: {}, okImg: {}, ptr: {}, recent: [], featureIdx: 0,
     latestPage: 0, cardPtr: [0, 0, 0, 0, 0], activeSlide: 0, currentFeature: null
   };
@@ -164,6 +165,7 @@
   }
   function list(cat) {
     if (cat === "recruise") return state.recruise;
+    if (cat === "gccindex") return state.gccindex;
     return (state.news && state.news.categories && state.news.categories[cat]) || [];
   }
   function remember(id) {
@@ -199,7 +201,28 @@
   }
 
   function loadData(first) {
-    var pending = 3;
+    var pending = 4;
+
+    // GCC Index weekly brief, pasted in by the team each Monday (credited quote, not a data feed)
+    getJSON("gcc_weekly.json", function (d) {
+      var out = [], t = now();
+      function add(list, section, from, maxDays, when, url) {
+        if (!list || !from || isNaN(parseISO(from + "T00:00:00"))) return;
+        if (t - parseISO(from + "T00:00:00") > maxDays * 86400000) return;   // never show a stale brief
+        each(list, function (x, i) {
+          if (!x || !x.title) return;
+          out.push({ id: "gi" + section + i, cat: "gccindex", title: x.title, summary: x.detail || "",
+            source: "GCC Index", label: x.label || "", when: when, url: url, img: "", ts: null });
+        });
+      }
+      if (d) {
+        var wk = d.week_of ? "Week of " + stamp(parseISO(d.week_of + "T00:00:00")) : "";
+        add(d.items, "w", d.week_of, 10, wk, d.url);
+        if (d.monthly) add(d.monthly.items, "m", d.monthly.month_start, 40, d.monthly.month + " report", d.monthly.url);
+      }
+      state.gccindex = out;
+      done();
+    }, done);
     function done() { if (--pending === 0) { updatedLabel(); if (first) start(); } }
 
     getJSON("news.json", function (d) {
@@ -252,7 +275,8 @@
     var slideId = state.activeSlide === 0 ? "fB" : "fA";
     var other = state.activeSlide === 0 ? "fA" : "fB";
     var el = $(slideId);
-    var when = it.year ? ("On this day &middot; " + it.year) : (ago(it.ts) + '<span class="sep">/</span>' + stamp(parseISO(it.ts)));
+    var when = it.year ? ("On this day &middot; " + it.year) :
+      (it.when ? esc(it.when) : (ago(it.ts) + '<span class="sep">/</span>' + stamp(parseISO(it.ts))));
     el.innerHTML =
       '<div class="f-img"></div><div class="f-shade"></div>' +
       '<div class="f-text">' +
@@ -336,9 +360,10 @@
     var card = $("card" + i), inner = $("ci" + i);
     var head = cat === "recruise" ? (it.label || "Recruise Corner") :
       (cat === "curiosity" ? (it.year ? "On this day &middot; " + it.year : "Did You Know?") : esc(CATS[cat].label));
-    var sub = cat === "curiosity" ? "Curiosity Corner" : (cat === "recruise" ? "Inside Recruise" : "");
+    var sub = cat === "curiosity" ? "Curiosity Corner" : (cat === "recruise" ? "Inside Recruise" : (cat === "gccindex" ? (it.label || "") : ""));
     var meta = it.ts ? "<b>" + esc(it.source) + "</b> &middot; " + ago(it.ts) : "<b>" + esc(it.source) + "</b>";
     if (it.year) meta = "<b>Wikipedia</b> &middot; " + stamp(now());
+    if (it.when) meta = "<b>" + esc(it.source) + "</b> &middot; " + esc(it.when);
     addClass(inner, "fade");
     setTimeout(function () {
       card.style.borderTopColor = catColor(cat);
