@@ -1,0 +1,39 @@
+name: Weekly reminder
+
+# Every Monday 12:30 IST (after Claude's 11:00 IST weekly update has had time to run):
+# if the GCC Research brief or the events list has gone stale, open a GitHub issue,
+# which GitHub emails to the repository owner. Closes the issue once things are fresh.
+on:
+  schedule:
+    - cron: "0 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check freshness and remind
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          status=$(python scripts/check_freshness.py)
+          title="Newsroom needs your input"
+          open_issue=$(gh issue list --state open --search "in:title \"$title\"" --json number -q '.[0].number')
+          if [ "$status" = "STALE" ]; then
+            if [ -n "$open_issue" ]; then
+              gh issue comment "$open_issue" --body-file reminder.md
+            else
+              gh issue create --title "$title" --body-file reminder.md
+            fi
+          elif [ -n "$open_issue" ]; then
+            gh issue close "$open_issue" --comment "All fresh again. Closing."
+          fi
+          echo "status: $status"
