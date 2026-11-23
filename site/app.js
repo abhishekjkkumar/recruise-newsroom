@@ -31,6 +31,8 @@
     curiosity: { label: "Curiosity Corner",    color: "#EEBA2B" },
     recruise:  { label: "Recruise Corner",     color: "#FFD2BA" },
     gccindex:  { label: "GCC Research · This Week", color: "#7747FF" },
+    events:    { label: "Upcoming Event",      color: "#EEBA2B" },
+    eventnews: { label: "Events & Summits",    color: "#EEBA2B" },
     talent:    { label: "Hiring & Layoffs",    color: "#ED8C1D" }
   };
   // Lighter text versions so small labels stay readable on the dark panels
@@ -41,7 +43,7 @@
   // Featured-story mix, weighted to Recruise's world:
   // GCC 20% · Hiring 15% · AI & tech 15% · India business 10% · Startups 10% · Talent 10% · Global 10% · Economy 10%
   var FEATURE_PATTERN = ["gcc", "hiring", "tech", "business", "gccindex", "ta", "startup", "world", "hiring", "gcc",
-    "tech", "economy", "business", "gcc", "hiring", "startup", "ta", "tech", "world", "gccindex"];
+    "tech", "economy", "events", "gcc", "hiring", "startup", "ta", "tech", "world", "gccindex"];
   // When a section runs dry, fill from these in order: India & GCC first, then foreign business, then economy
   var FALLBACK = ["gcc", "hiring", "ta", "business", "world", "economy", "tech", "startup"];
   var CARD_SLOTS = [
@@ -49,11 +51,11 @@
     { cats: ["hiring"] },
     { cats: ["ta", "business"] },
     { cats: ["tech", "startup", "economy"] },
-    { cats: ["curiosity", "recruise"] }
+    { cats: ["events", "curiosity", "eventnews", "events", "recruise"] }
   ];
 
   var state = {
-    news: null, recruise: [], gccindex: [], version: null, generated: null,
+    news: null, recruise: [], gccindex: [], eventsRaw: [], eventsDays: 60, version: null, generated: null,
     badImg: {}, okImg: {}, ptr: {}, recent: [], featureIdx: 0,
     latestPage: 0, cardPtr: [0, 0, 0, 0, 0], activeSlide: 0, currentFeature: null
   };
@@ -166,8 +168,45 @@
   function list(cat) {
     if (cat === "recruise") return state.recruise;
     if (cat === "gccindex") return state.gccindex;
+    if (cat === "events") return upcomingEvents();
     return (state.news && state.news.categories && state.news.categories[cat]) || [];
   }
+  /* ---------- Upcoming events (verified list in events.json, countdown in IST) ---------- */
+  function dayNum(ymd) {          // days since epoch for a YYYY-MM-DD date
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(ymd || "");
+    return m ? Math.floor(Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000) : NaN;
+  }
+  function todayNum() { var p = ist(new Date()); return Math.floor(Date.UTC(p.y, p.mo, p.d) / 86400000); }
+  function eventDate(e) {
+    var s = ist(dayNum(e.start) * 86400000 - CFG.istOffsetMin * 60000 + 43200000);
+    var mon = MONTHS[s.mo].slice(0, 3);
+    if (e.end && e.end !== e.start) {
+      var en = ist(dayNum(e.end) * 86400000 - CFG.istOffsetMin * 60000 + 43200000);
+      return en.mo === s.mo ? s.d + "–" + en.d + " " + mon + " " + en.y : s.d + " " + mon + " – " + en.d + " " + MONTHS[en.mo].slice(0, 3) + " " + en.y;
+    }
+    return s.d + " " + mon + " " + s.y;
+  }
+  function countdown(e) {
+    var t = todayNum(), a = dayNum(e.start), b = dayNum(e.end || e.start);
+    if (t >= a && t <= b) return a === b ? "Today" : "On now";
+    var d = a - t;
+    return d === 1 ? "Tomorrow" : "in " + d + " days";
+  }
+  function upcomingEvents() {
+    var t = todayNum(), out = [];
+    each(state.eventsRaw, function (e, i) {
+      if (!e || !e.name || isNaN(dayNum(e.start))) return;
+      var a = dayNum(e.start), b = isNaN(dayNum(e.end)) ? a : dayNum(e.end);
+      if (b < t || a - t > state.eventsDays) return;     // finished, or too far ahead
+      var where = (e.venue ? e.venue + ", " : "") + (e.city || "");
+      out.push({ id: "ev" + i, cat: "events", title: e.name, summary: where + (e.about ? " · " + e.about : ""),
+        source: e.city || "Event", img: "", ts: null, startDay: a, cd: countdown(e),
+        when: eventDate(e) + " · " + countdown(e) });
+    });
+    out.sort(function (x, y) { return x.startDay - y.startDay; });
+    return out;
+  }
+
   function remember(id) {
     state.recent.push(id);
     if (state.recent.length > 60) state.recent.shift();
@@ -201,7 +240,15 @@
   }
 
   function loadData(first) {
-    var pending = 4;
+    var pending = 5;
+
+    getJSON("events.json", function (d) {
+      if (d && d.items) {
+        state.eventsRaw = d.items;
+        if (d.show_days_before) state.eventsDays = d.show_days_before;
+      }
+      done();
+    }, done);
 
     // GCC Index weekly brief, pasted in by the team each Monday (credited quote, not a data feed)
     getJSON("gcc_weekly.json", function (d) {
@@ -223,15 +270,14 @@
       state.gccindex = out;
       done();
     }, done);
-    function done() { if (--pending === 0) { updatedLabel(); if (first) start(); } }
+    // When everything has loaded, rebuild the ticker (so events and countdowns stay current) and start
+    function done() { if (--pending === 0) { if (state.news) buildTicker(); updatedLabel(); if (first) start(); } }
 
     getJSON("news.json", function (d) {
       if (d && d.categories) {
         var n = 0; each(keys(d.categories), function (k) { n += d.categories[k].length; });
         if (n >= 10) {
-          var changed = !state.news || state.news.generated !== d.generated;
           state.news = d; state.generated = d.generated;
-          if (changed) buildTicker();
         }
       }
       done();
@@ -389,10 +435,15 @@
         }
       });
     }
+    // Upcoming events lead the ticker, then news
+    var evs = upcomingEvents().slice(0, 3);
+    out = evs.concat(out);
     var html = "";
     each(out, function (it) {
+      var src = it.cat === "events" ? "Upcoming &middot; " + esc(it.cd) : esc(it.source);
+      var text = it.cat === "events" ? esc(it.title) + " &mdash; " + esc(it.when.split(" · ")[0]) + ", " + esc(it.source) : esc(it.title);
       html += '<span class="t-item"><span class="pin" style="background:' + catColor(it.cat) + '"></span>' +
-        '<span class="t-src">' + esc(it.source) + "</span>" + esc(it.title) + "</span>";
+        '<span class="t-src">' + src + "</span>" + text + "</span>";
     });
     return html;
   }

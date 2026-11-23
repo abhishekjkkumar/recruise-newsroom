@@ -85,6 +85,10 @@ FEEDS = [
     # Backup pool 2: economy (India first, then global)
     ("gn_econ_in", None, gnews('(RBI OR GDP OR inflation OR rupee OR "repo rate" OR exports OR FDI OR "Union Budget" OR "economic growth") India when:2d'), "economy"),
     ("gn_econ_gl", None, gnews('("Federal Reserve" OR IMF OR "World Bank" OR "global economy" OR recession OR tariffs OR "trade deal") when:2d'), "economy"),
+    # Events & summits: news about industry events happening now (GCC, HR/talent, AI, startups)
+    ("gn_events1", None, gnews('(summit OR conclave OR conference OR forum OR expo OR awards) (GCC OR "capability centre" OR "capability center" OR NASSCOM OR Zinnov OR ANSR) India when:2d'), "eventnews"),
+    ("gn_events2", None, gnews('(summit OR conclave OR conference OR forum OR awards) (HR OR CHRO OR "talent acquisition" OR "people leaders" OR "future of work") India when:2d'), "eventnews"),
+    ("gn_events3", None, gnews('(summit OR conclave OR conference OR "tech summit" OR hackathon) (AI OR "generative AI" OR startup OR TiE OR "tech leaders") (Bengaluru OR Hyderabad OR Mumbai OR Delhi OR Pune OR Chennai OR India) when:2d'), "eventnews"),
     # Curiosity corner (small share)
     ("nasa", "NASA", "https://www.nasa.gov/news-release/feed/", "curiosity"),
     ("space", "Space.com", "https://www.space.com/feeds/all", "curiosity"),
@@ -92,7 +96,7 @@ FEEDS = [
 ]
 
 CAP = {"gcc": 30, "hiring": 26, "ta": 24, "tech": 28, "startup": 22, "business": 24,
-       "world": 24, "economy": 16, "curiosity": 10}
+       "world": 24, "economy": 16, "eventnews": 12, "curiosity": 10}
 # Age rule (agreed with Recruise): nothing older than 2 days, ever.
 # Under 24h: always eligible. 24-48h: only if important (several publishers / GCC story)
 # or the section would otherwise run dry.
@@ -148,6 +152,12 @@ INDIA_CO = re.compile(r"(?i)₹|\b(rs\.?|crore|lakh|tata|reliance|adani|infosys|
 
 def is_india(text):
     return bool(INDIA_HINT.search(text) or INDIA_CO.search(text))
+
+
+EVENT_WORD = re.compile(r"(?i)\b(summits?|conclaves?|conferences?|forums?|expos?|awards?|hackathons?|symposium|"
+                        r"meet ?ups?|roundtables?|festivals?|fest|edition|keynote|tech week)\b")
+POLITICAL_EVENT = re.compile(r"(?i)\b(g20|g7|brics|sco|quad|bilateral|prime minister|pm modi|president|minister|parliament|"
+                             r"election|party|climate|cop\d+|un general|nato|asean|apec)\b")
 
 
 ECON_TITLE = re.compile(r"(?i)\b(rbi|repo rate|gdp|inflation|cpi|wpi|rupee|fiscal|budget|exports?|imports?|trade deficit|"
@@ -306,6 +316,14 @@ def classify(it):
     from_gn = it["feed"].startswith("gn_")
     if from_gn and LOW_QUALITY_SRC.search(it["source"] or ""):
         return None
+    if cat == "eventnews":
+        # An industry event (summit, conclave, awards...) in Recruise's world, in India; no politics
+        if not EVENT_WORD.search(title) or POLITICAL_EVENT.search(title):
+            return None
+        if not (GCC_HINT.search(text) or TALENT_HINT.search(text) or TA_TITLE.search(text) or AI_HINT.search(text)
+                or re.search(r"(?i)\b(startup|founders?|tie|nasscom|zinnov|ansr|tech)\b", text)):
+            return None
+        return "eventnews" if is_india(text) else None
     # Search-based hiring / talent stories must touch India, tech/AI or a major employer
     if GOVT_JOBS.search(title) and (cat in ("hiring", "ta") or TA_TITLE.search(title) or HIRING_TITLE.search(title)):
         return None
