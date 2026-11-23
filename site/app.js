@@ -9,7 +9,7 @@
   "use strict";
 
   var CFG = {
-    dataEvery: 10 * 60 * 1000,
+    dataEvery: 2 * 60 * 1000,       // check for new stories every 2 minutes
     featureEvery: 18000,
     latestEvery: 16000,
     cardEvery: 14000,

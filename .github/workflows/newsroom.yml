@@ -27,8 +27,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Refresh and publish every 15 minutes
+      - name: Refresh and publish every 7-8 minutes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PREVIOUS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/news.json
-        run: bash scripts/run_loop.sh
+        # Run a copy: the loop updates the repo (including this script) while it runs
+        run: cp scripts/run_loop.sh /tmp/run_loop.sh && bash /tmp/run_loop.sh

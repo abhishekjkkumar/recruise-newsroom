@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Keeps the newsroom fresh: rebuild news.json every 15 minutes for ~5h45m, publishing each
+# Keeps the newsroom fresh: rebuild news.json every 7-8 minutes for ~5h45m, publishing each
 # result to the gh-pages branch. GitHub's own scheduler is too irregular to rely on alone.
 set -u
-INTERVAL=${INTERVAL_SECONDS:-900}
+INTERVAL=${INTERVAL_SECONDS:-450}   # every 7.5 min: just under GitHub Pages' ~10 publishes/hour
 END=$(( $(date +%s) + ${LOOP_MINUTES:-345} * 60 ))
 REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 
