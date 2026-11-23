@@ -15,3 +15,7 @@ Open the link once in the TV browser and go full screen. It needs no login. News
 
 ## Recruise Corner
 Edit `site/recruise.json` on GitHub (pencil icon), add items, commit. The TV shows them within ~15 minutes. Photos: upload to `site/assets/` and use `"image": "assets/photo.jpg"`. Use `"until": "2026-12-31"` to hide a post after a date.
+
+## Weekly and event updates
+- `site/gcc_weekly.json`: paste the GCC Index weekly brief each Monday. Verify every claim in news reports first; it shows as "GCC Research" with a small GCC Index source line.
+- `site/events.json`: upcoming industry events. Add only after checking the date and venue on the organiser's own site. The TV shows events 60 days ahead with a countdown and hides them after they end.
