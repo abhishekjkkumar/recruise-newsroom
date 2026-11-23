@@ -20,6 +20,7 @@
   --c-startup: #18BF71;
   --c-curiosity: #EEBA2B;
   --c-recruise: #FFD2BA;
+  --c-ta: #DF3A5B;
   --coral: #DF3A5B;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; } }

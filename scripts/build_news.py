@@ -33,46 +33,60 @@ def gnews(q):
 
 
 # (feed id, source label, url, default category)
+# Weighted to Recruise's world: GCCs, hiring & layoffs, talent acquisition & leadership,
+# AI & tech, startups & funding, and only the business news that moves companies and jobs.
+HR_SITES = "(site:peoplematters.in OR site:hrkatha.com OR site:hr.economictimes.indiatimes.com OR site:shrm.org OR site:hrdive.com)"
+IT_MAJORS = ('Infosys OR TCS OR Wipro OR HCLTech OR "Tech Mahindra" OR LTIMindtree OR Accenture OR Cognizant '
+             'OR Capgemini OR Deloitte OR Genpact OR Coforge OR Persistent OR Mphasis')
+CITIES = "(Bengaluru OR Bangalore OR Hyderabad OR Pune OR Chennai OR Gurugram OR Noida OR Mumbai OR Kochi OR Ahmedabad OR Coimbatore OR Mangaluru)"
 FEEDS = [
-    # Business & global
-    ("bbc_business", "BBC News", "https://feeds.bbci.co.uk/news/business/rss.xml", "business"),
-    ("cnbc_top", "CNBC", "https://www.cnbc.com/id/100003114/device/rss/rss.html", "business"),
-    ("cnbc_biz", "CNBC", "https://www.cnbc.com/id/10001147/device/rss/rss.html", "business"),
-    ("guardian_biz", "The Guardian", "https://www.theguardian.com/uk/business/rss", "business"),
-    ("et_top", "The Economic Times", "https://economictimes.indiatimes.com/rssfeedstopstories.cms", "business"),
-    ("mint_companies", "Mint", "https://www.livemint.com/rss/companies", "business"),
-    ("hbl", "BusinessLine", "https://www.thehindubusinessline.com/feeder/default.rss", "business"),
+    # India & GCC radar
+    ("gn_gcc1", None, gnews('"global capability centre" OR "global capability center" OR "global capability centres" when:7d'), "gcc"),
+    ("gn_gcc2", None, gnews('GCC ' + CITIES + ' when:7d'), "gcc"),
+    ("gn_gcc3", None, gnews('("tech centre" OR "technology centre" OR "innovation centre" OR "innovation hub" OR "engineering centre" OR "new office" OR campus) India (opens OR inaugurates OR expands OR launches OR "sets up") when:7d'), "gcc"),
+    ("gn_gcc4", None, gnews('("enters India" OR "India entry" OR "India operations" OR "India expansion" OR "expands in India" OR "India headcount") when:7d'), "gcc"),
+    ("gn_gcc5", None, gnews('(NASSCOM OR Zinnov OR ANSR) (GCC OR "capability centre" OR report) when:14d'), "gcc"),
+    # Hiring & layoffs
+    ("gn_hire1", None, gnews('("plans to hire" OR "to hire" OR "hiring plans" OR "hiring spree" OR "fresher hiring" OR "campus hiring" OR "lateral hiring") India when:4d'), "hiring"),
+    ("gn_hire2", None, gnews('(layoffs OR "job cuts" OR "laid off" OR "cut jobs" OR "workforce reduction") (tech OR IT OR startup OR AI OR bank) when:3d'), "hiring"),
+    ("gn_hire3", None, gnews('("Naukri JobSpeak" OR foundit OR TeamLease OR Xpheno OR Quess OR "Indeed Hiring Lab" OR "white-collar hiring") when:10d'), "hiring"),
+    ("gn_hire4", None, gnews('(' + IT_MAJORS + ') (hiring OR headcount OR freshers OR layoffs OR attrition OR "wage hike" OR "salary hike") when:5d'), "hiring"),
+    # Talent acquisition, HR & leadership moves
+    ("et_hr", "ETHRWorld", "https://hr.economictimes.indiatimes.com/rss/topstories", "ta"),
+    ("gn_hrnews", None, gnews(HR_SITES + ' when:3d'), "ta"),
+    ("gn_ta", None, gnews('("talent acquisition" OR recruitment OR "executive search" OR staffing OR RPO OR "skills gap" OR "talent shortage" OR "employer branding") India when:5d'), "ta"),
+    ("gn_moves", None, gnews('(appoints OR appointed OR elevates OR elevated OR "named as" OR "joins as") (CHRO OR CTO OR CIO OR CEO OR "country head" OR "managing director" OR "head of GCC" OR "centre head" OR "site leader") India when:5d'), "ta"),
+    ("gn_fow", None, gnews('("future of work" OR "AI and jobs" OR "AI impact on jobs" OR "return to office" OR "hybrid work" OR "four-day week" OR "salary increment") when:7d'), "ta"),
     # AI & technology
+    ("mint_ai", "Mint", "https://www.livemint.com/rss/AI", "tech"),
+    ("et_tech", "ET Tech", "https://economictimes.indiatimes.com/tech/rssfeeds/13357270.cms", "tech"),
     ("bbc_tech", "BBC News", "https://feeds.bbci.co.uk/news/technology/rss.xml", "tech"),
     ("cnbc_tech", "CNBC", "https://www.cnbc.com/id/19854910/device/rss/rss.html", "tech"),
-    ("et_tech", "ET Tech", "https://economictimes.indiatimes.com/tech/rssfeeds/13357270.cms", "tech"),
-    ("mint_ai", "Mint", "https://www.livemint.com/rss/AI", "tech"),
     ("techcrunch", "TechCrunch", "https://techcrunch.com/feed/", "tech"),
     ("verge", "The Verge", "https://www.theverge.com/rss/index.xml", "tech"),
     ("mittr", "MIT Technology Review", "https://www.technologyreview.com/feed/", "tech"),
-    # India & GCC radar
-    ("gn_gcc1", None, gnews('"global capability centre" OR "global capability center" OR "global capability centres" when:10d'), "gcc"),
-    ("gn_gcc2", None, gnews('GCC (Bengaluru OR Hyderabad OR Pune OR Chennai OR Gurugram OR Noida OR Mumbai OR Kochi OR Ahmedabad) when:10d'), "gcc"),
-    ("gn_gcc3", None, gnews('("tech centre" OR "technology centre" OR "innovation centre" OR "innovation hub" OR "new office") India (opens OR inaugurates OR expands OR launches) when:10d'), "gcc"),
-    # Talent & future of work
-    ("et_hr", "ETHRWorld", "https://hr.economictimes.indiatimes.com/rss/topstories", "talent"),
-    ("gn_talent1", None, gnews('(layoffs OR "job cuts" OR "hiring plans" OR "hiring spree" OR "salary hike" OR workforce) India when:4d'), "talent"),
-    ("gn_talent2", None, gnews('("future of work" OR "AI and jobs" OR "skills gap" OR "talent shortage" OR "return to office" OR "four-day week") when:7d'), "talent"),
-    # Startup & money
+    ("gn_ai_india", None, gnews('("AI" OR "generative AI" OR "agentic AI" OR cybersecurity OR cloud) (India OR GCC OR ' + IT_MAJORS + ') when:3d'), "tech"),
+    # Startups & funding
     ("et_startups", "ET Tech", "https://economictimes.indiatimes.com/tech/startups/rssfeeds/78570550.cms", "startup"),
     ("inc42", "Inc42", "https://inc42.com/feed/", "startup"),
     ("yourstory", "YourStory", "https://yourstory.com/feed", "startup"),
     ("tc_startups", "TechCrunch", "https://techcrunch.com/category/startups/feed/", "startup"),
-    ("gn_funding", None, gnews('startup (raises OR "funding round" OR "Series A" OR "Series B" OR "Series C" OR IPO OR acquires) India when:4d'), "startup"),
-    # Curiosity corner
+    ("gn_funding", None, gnews('startup (raises OR "funding round" OR "Series A" OR "Series B" OR "Series C" OR IPO OR acquires OR unicorn) India when:4d'), "startup"),
+    # Business & deals (filtered to companies, deals, investment, economy)
+    ("gn_itmajors", None, gnews('(' + IT_MAJORS + ') (deal OR contract OR results OR acquisition OR expansion OR CEO) when:4d'), "business"),
+    ("mint_companies", "Mint", "https://www.livemint.com/rss/companies", "business"),
+    ("et_top", "The Economic Times", "https://economictimes.indiatimes.com/rssfeedstopstories.cms", "business"),
+    ("hbl", "BusinessLine", "https://www.thehindubusinessline.com/feeder/default.rss", "business"),
+    ("cnbc_biz", "CNBC", "https://www.cnbc.com/id/10001147/device/rss/rss.html", "business"),
+    ("bbc_business", "BBC News", "https://feeds.bbci.co.uk/news/business/rss.xml", "business"),
+    # Curiosity corner (small share)
     ("nasa", "NASA", "https://www.nasa.gov/news-release/feed/", "curiosity"),
     ("space", "Space.com", "https://www.space.com/feeds/all", "curiosity"),
     ("sciencedaily", "ScienceDaily", "https://www.sciencedaily.com/rss/top/science.xml", "curiosity"),
-    ("bbc_sci", "BBC News", "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml", "curiosity"),
 ]
 
-MAX_AGE_H = {"business": 48, "tech": 72, "gcc": 240, "talent": 120, "startup": 96, "curiosity": 336}
-CAP = {"business": 45, "tech": 30, "gcc": 24, "talent": 18, "startup": 18, "curiosity": 16}
+MAX_AGE_H = {"gcc": 240, "hiring": 120, "ta": 168, "tech": 72, "startup": 96, "business": 48, "curiosity": 336}
+CAP = {"gcc": 30, "hiring": 26, "ta": 24, "tech": 28, "startup": 22, "business": 24, "curiosity": 10}
 
 # Not suitable for an office lobby screen, or not news.
 JUNK = re.compile(r"(?i)(horoscope|\blive updates?\b|\blive:|\bhighlights\b|broker.?s call|stocks? to (buy|watch)|"
@@ -98,6 +112,29 @@ FUND_HINT = re.compile(r"(?i)\b(raises?|raised|funding|series [a-f]\b|seed round
                        r"acquires|acquisition|venture|vc fund|investors?)\b")
 AI_HINT = re.compile(r"(?i)\b(AI|artificial intelligence|genai|openai|anthropic|chatgpt|claude|gemini|llm|nvidia|"
                      r"chip\w*|semiconductor|robot\w*|cyber\w*|cloud|quantum|data cent(re|er)s?)\b")
+HIRING_TITLE = re.compile(r"(?i)\b(layoffs?|laid off|job cuts?|cut(s|ting)? jobs|hiring|to hire|hires|headcount|freshers?|"
+                          r"campus placements?|attrition|wage hike|salary hike|increments?|workforce reduction|jobs? (report|data|market))\b")
+TA_TITLE = re.compile(r"(?i)\b(appoint\w*|elevat\w*|named|joins as|chro|chief people|hr head|talent acquisition|recruit\w*|"
+                      r"staffing|executive search|skills? gap|upskill\w*|reskill\w*|employer brand\w*|future of work|"
+                      r"hybrid work|return to office|work from office|employee experience|gig workers?)\b")
+BIZ_REL = re.compile(r"(?i)\b(acqui\w*|merger|invest\w*|stake|expan\w*|ipo|earnings|results|profit|revenue|quarter|q[1-4]|"
+                     r"deal|contract|order book|it services|outsourc\w*|capex|plant|factory|facility|launch\w*|ceo|board|"
+                     r"economy|gdp|rbi|fed|interest rates?|inflation|rupee|tariffs?|exports?|fdi|manufacturing|"
+                     r"infosys|tcs|wipro|hcl\w*|accenture|cognizant|capgemini|deloitte|pwc|kpmg|mckinsey|tata|reliance|adani|"
+                     r"microsoft|google|amazon|apple|meta|nvidia|walmart|jpmorgan|goldman)\b")
+MARKET_NOISE = re.compile(r"(?i)\b(sensex|nifty|stock market today|stocks to|gold (price|rate)|silver (price|rate)|crude oil price|"
+                          r"petrol|diesel price|bitcoin price|market wrap|closing bell|opening bell|f&o|multibagger|penny stock|"
+                          r"mutual funds? to|sip|fixed deposit|fd rates?|credit card|personal finance|tax saving|futures|"
+                          r"shares (open|close|end|trade)|(asian|us|indian|global) (stocks|shares|markets)|"
+                          r"stocks? (rise|fall|slump|rally|drop|jump|surge)|you can buy|best .* deals?)\b")
+GOVT_JOBS = re.compile(r"(?i)\b(agnipath|agniveer|army|police|constable|ssc|upsc|psc|jssc|bpsc|rrb|railway recruitment|"
+                       r"admit card|answer key|vacanc\w*|notification|govt jobs?|government jobs?|sarkari|exam|recruitment drive for|"
+                       r"teachers? recruitment|minister|chef|gorkha)\b")
+LOW_QUALITY_SRC = re.compile(r"(?i)(36kr|updf|global advisory|tradingkey|tradingview|wisevoter|prop news|onlinekhabar|hubbis|"
+                             r"marketscreener|stocktitan|benzinga|investing\.com|globe newswire|pr newswire|einpresswire|"
+                             r"openpr|newsbreak|latestly|devdiscourse|whalesbook|upstox|groww)")
+GOSSIP = re.compile(r"(?i)\b(affair|spy|girlfriend|wife|husband|dating|divorce|viral video|copper|commodit\w*|"
+                    r"book of records|sponge parks?|civic|garbage|storm ?water|potholes?)\b")
 CURIO_GOOD = re.compile(r"(?i)\b(first|launch\w*|discover\w*|invent\w*|found(ed)?|open(ed|s)?|record|patent\w*|"
                         r"premiere\w*|published|introduc\w*|completed|establish\w*|land(ed|ing)|flight|signed)\b")
 
@@ -211,7 +248,9 @@ def parse_feed(fid, source, raw, cat):
                 src = re.sub(r"^https?://(www\.)?", "", src).split("/")[0]
             while src and title.endswith(" - " + src):
                 title = title[: -len(" - " + src)].strip()
+            title = re.sub(r"\s+[-|]\s+https?://\S+$", "", title)
             title = re.sub(r"\s+[-|]\s+[A-Z][\w.&' ]{1,30}$", "", title) if " - " in title else title
+            src = re.sub(r"\s+-\s+.*$", "", src)  # "People Matters - India" -> "People Matters"
             summary = ""
         if summary and (summary.lower().startswith(title.lower()[:40]) and len(summary) < len(title) + 30):
             summary = ""
@@ -229,26 +268,57 @@ def parse_feed(fid, source, raw, cat):
 
 
 def classify(it):
-    """Move stories into the radar sections where the headline clearly belongs."""
-    text = it["title"] + " " + it["summary"]
+    """Sort each story into the section where Recruise's audience will care about it."""
+    title = it["title"]
+    text = title + " " + it["summary"]
     cat = it["cat"]
+    if MARKET_NOISE.search(title) or GOSSIP.search(title):
+        return None
+    if cat == "curiosity":
+        return cat
+    from_gn = it["feed"].startswith("gn_")
+    if from_gn and LOW_QUALITY_SRC.search(it["source"] or ""):
+        return None
+    # Search-based hiring / talent stories must touch India, tech/AI or a major employer
+    if GOVT_JOBS.search(title) and (cat in ("hiring", "ta") or TA_TITLE.search(title) or HIRING_TITLE.search(title)):
+        return None
+    if re.search(r"(?i)^(top|best) \d+|\btop \d+ best\b", title):
+        return None
+    if from_gn and cat in ("hiring", "ta"):
+        if not (INDIA_HINT.search(text) or AI_HINT.search(title) or BIZ_REL.search(title)):
+            return None
+        if it["feed"] == "gn_moves" and not INDIA_HINT.search(text):
+            return None
     if cat == "gcc":
         if GULF.search(text) and not re.search(r"(?i)capability", text):
             return None
-        if GCC_FALSE.search(text) or not GCC_HINT.search(it["title"]) or not INDIA_HINT.search(text):
+        if GCC_FALSE.search(text) or not INDIA_HINT.search(text):
+            return None
+        if not (GCC_HINT.search(title) or re.search(
+                r"(?i)\b(office|campus|centre|center|hub|enters|expan\w*|operations|headcount|facility)\b", title)):
             return None
         return "gcc"
-    if cat in ("business", "tech") and GCC_HINT.search(it["title"]) and INDIA_HINT.search(text) and not GULF.search(text):
+    # From any section: a GCC / India-centre story belongs on the GCC radar
+    if GCC_HINT.search(title) and INDIA_HINT.search(text) and not GULF.search(text) and not GCC_FALSE.search(text):
         return "gcc"
-    if cat == "talent" and not TALENT_HINT.search(text):
-        return None
-    if cat in ("business", "tech") and TALENT_HINT.search(it["title"]) and re.search(
-            r"(?i)\b(layoff|laid off|job cuts?|hiring|hires|workforce|salar|attrition|employees)\b", it["title"]):
-        return "talent"
-    if cat == "startup" and it["feed"].startswith("gn_") and not FUND_HINT.search(text):
-        return None
-    if cat == "business" and AI_HINT.search(it["title"]) and it["feed"] not in ("bbc_world",):
-        return "tech"
+    if HIRING_TITLE.search(title) and cat != "startup":
+        return "hiring"
+    if cat == "hiring":
+        return "hiring" if TALENT_HINT.search(text) else None
+    if TA_TITLE.search(title) and cat in ("business", "tech", "ta"):
+        return "ta"
+    if cat == "ta":
+        return "ta" if (TALENT_HINT.search(text) or TA_TITLE.search(text)) else None
+    if cat == "startup":
+        if it["feed"].startswith("gn_") and not FUND_HINT.search(text):
+            return None
+        return "startup"
+    if cat == "business":
+        if AI_HINT.search(title):
+            return "tech"
+        if FUND_HINT.search(title) and re.search(r"(?i)startup", text):
+            return "startup"
+        return "business" if BIZ_REL.search(title) else None
     return cat
 
 

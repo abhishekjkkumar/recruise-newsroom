@@ -15,23 +15,26 @@
   };
 
   var CATS = {
-    business:  { label: "Business & Global",       color: "var(--c-business)" },
-    tech:      { label: "AI & Technology",         color: "var(--c-tech)" },
-    gcc:       { label: "India & GCC Radar",       color: "var(--c-gcc)" },
-    talent:    { label: "Talent & Future of Work", color: "var(--c-talent)" },
-    startup:   { label: "Startup & Money",         color: "var(--c-startup)" },
-    curiosity: { label: "Curiosity Corner",        color: "var(--c-curiosity)" },
-    recruise:  { label: "Recruise Corner",         color: "var(--c-recruise)" }
+    gcc:       { label: "India & GCC Radar",     color: "var(--c-gcc)" },
+    hiring:    { label: "Hiring & Layoffs",      color: "var(--c-talent)" },
+    ta:        { label: "Talent & Leadership",   color: "var(--c-ta)" },
+    tech:      { label: "AI & Technology",       color: "var(--c-tech)" },
+    startup:   { label: "Startups & Funding",    color: "var(--c-startup)" },
+    business:  { label: "Business & Deals",      color: "var(--c-business)" },
+    curiosity: { label: "Curiosity Corner",      color: "var(--c-curiosity)" },
+    recruise:  { label: "Recruise Corner",       color: "var(--c-recruise)" },
+    talent:    { label: "Hiring & Layoffs",      color: "var(--c-talent)" }
   };
-  // Content mix for the featured story: ~40/20/15/10/10/5
-  var FEATURE_PATTERN = ["business", "tech", "business", "gcc", "business", "talent", "tech", "business",
-    "startup", "business", "gcc", "tech", "business", "talent", "business", "startup", "tech", "gcc", "business", "curiosity"];
+  // Featured-story mix, weighted to Recruise's world:
+  // GCC 25% · Hiring & layoffs 20% · AI & tech 20% · Startups 15% · Talent & leadership 10% · Business 10%
+  var FEATURE_PATTERN = ["gcc", "hiring", "tech", "startup", "gcc", "ta", "hiring", "tech", "business", "gcc",
+    "startup", "hiring", "tech", "gcc", "ta", "hiring", "tech", "startup", "gcc", "business"];
   var CARD_SLOTS = [
-    { cats: ["tech"], title: "AI & Technology" },
-    { cats: ["gcc"], title: "India & GCC Radar" },
-    { cats: ["talent"], title: "Future of Work" },
-    { cats: ["startup"], title: "Startup & Money" },
-    { cats: ["curiosity", "recruise"], title: "Did You Know?" }
+    { cats: ["gcc"] },
+    { cats: ["hiring"] },
+    { cats: ["ta"] },
+    { cats: ["tech", "startup"] },
+    { cats: ["curiosity", "recruise"] }
   ];
 
   var state = {
@@ -276,7 +279,7 @@
     if (!it) return;
     var c = CATS[cat];
     var card = $("card" + i), inner = card.querySelector(".inner");
-    var head = cat === "recruise" ? (it.label || "Recruise Corner") : (cat === "curiosity" ? (it.year ? "On this day · " + it.year : "Did You Know?") : slot.title);
+    var head = cat === "recruise" ? (it.label || "Recruise Corner") : (cat === "curiosity" ? (it.year ? "On this day · " + it.year : "Did You Know?") : CATS[cat].label);
     var sub = cat === "curiosity" ? "Curiosity Corner" : (cat === "recruise" ? "Inside Recruise" : "");
     var meta = it.ts ? "<b>" + esc(it.source) + "</b> · " + ago(it.ts) : "<b>" + esc(it.source) + "</b>";
     if (it.year) meta = "<b>Wikipedia</b> · " + stamp(new Date().toISOString());
@@ -296,7 +299,7 @@
   var tick = { x: 0, w: 0, last: 0, pending: null };
   function tickerHTML() {
     var out = [];
-    var order = ["business", "tech", "gcc", "business", "talent", "startup", "business", "tech", "curiosity"];
+    var order = ["gcc", "hiring", "tech", "ta", "startup", "gcc", "hiring", "business", "tech", "startup"];
     var used = {};
     for (var round = 0; round < 4; round++) {
       order.forEach(function (cat) {
