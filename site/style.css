@@ -21,6 +21,8 @@
   --c-curiosity: #EEBA2B;
   --c-recruise: #FFD2BA;
   --c-ta: #DF3A5B;
+  --c-world: #A58BFF;
+  --c-economy: #FFD2BA;
   --coral: #DF3A5B;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark; } }

@@ -20,20 +20,24 @@
     ta:        { label: "Talent & Leadership",   color: "var(--c-ta)" },
     tech:      { label: "AI & Technology",       color: "var(--c-tech)" },
     startup:   { label: "Startups & Funding",    color: "var(--c-startup)" },
-    business:  { label: "Business & Deals",      color: "var(--c-business)" },
+    business:  { label: "India Business",        color: "var(--c-business)" },
+    world:     { label: "Global Business",       color: "var(--c-world)" },
+    economy:   { label: "Economy",               color: "var(--c-economy)" },
     curiosity: { label: "Curiosity Corner",      color: "var(--c-curiosity)" },
     recruise:  { label: "Recruise Corner",       color: "var(--c-recruise)" },
     talent:    { label: "Hiring & Layoffs",      color: "var(--c-talent)" }
   };
   // Featured-story mix, weighted to Recruise's world:
-  // GCC 25% · Hiring & layoffs 20% · AI & tech 20% · Startups 15% · Talent & leadership 10% · Business 10%
-  var FEATURE_PATTERN = ["gcc", "hiring", "tech", "startup", "gcc", "ta", "hiring", "tech", "business", "gcc",
-    "startup", "hiring", "tech", "gcc", "ta", "hiring", "tech", "startup", "gcc", "business"];
+  // GCC 20% · Hiring 15% · AI & tech 15% · India business 10% · Startups 10% · Talent 10% · Global 10% · Economy 10%
+  var FEATURE_PATTERN = ["gcc", "hiring", "tech", "business", "gcc", "ta", "startup", "world", "hiring", "gcc",
+    "tech", "economy", "business", "gcc", "hiring", "startup", "ta", "tech", "world", "economy"];
+  // When a section runs dry, fill from these in order: India & GCC first, then foreign business, then economy
+  var FALLBACK = ["gcc", "hiring", "ta", "business", "world", "economy", "tech", "startup"];
   var CARD_SLOTS = [
     { cats: ["gcc"] },
     { cats: ["hiring"] },
-    { cats: ["ta"] },
-    { cats: ["tech", "startup"] },
+    { cats: ["ta", "business"] },
+    { cats: ["tech", "startup", "economy"] },
     { cats: ["curiosity", "recruise"] }
   ];
 
@@ -127,22 +131,31 @@
     state.recent.push(id);
     if (state.recent.length > 60) state.recent.shift();
   }
-  function nextFrom(cat, preferImage) {
+  // strict: only return a story not shown recently (null if the section has run dry)
+  function nextFrom(cat, preferImage, strict) {
     var arr = list(cat);
     if (!arr.length) return null;
     var p = state.ptr[cat] || 0;
-    for (var pass = 0; pass < 2; pass++) {
+    var passes = [
+      function (it) { return state.recent.indexOf(it.id) < 0 && (!preferImage || (it.img && !state.badImg[it.img])); },
+      function (it) { return state.recent.indexOf(it.id) < 0; }
+    ];
+    if (!strict) passes.push(function () { return true; });
+    for (var pass = 0; pass < passes.length; pass++) {
       for (var i = 0; i < arr.length; i++) {
         var it = arr[(p + i) % arr.length];
-        if (state.recent.indexOf(it.id) >= 0 && pass === 0) continue;
-        if (preferImage && pass === 0 && (!it.img || state.badImg[it.img])) continue;
+        if (!passes[pass](it)) continue;
         state.ptr[cat] = (p + i + 1) % arr.length;
         return it;
       }
     }
-    var it2 = arr[p % arr.length];
-    state.ptr[cat] = (p + 1) % arr.length;
-    return it2;
+    return null;
+  }
+  // Slow news day: when a section has nothing new, fall back in Recruise's priority order
+  function pick(cat, preferImage) {
+    var it = nextFrom(cat, preferImage, true);
+    for (var i = 0; !it && i < FALLBACK.length; i++) it = nextFrom(FALLBACK[i], preferImage, true);
+    return it || nextFrom(cat, preferImage, false) || nextFrom("gcc", preferImage, false);
   }
 
   function loadData(first) {
@@ -190,7 +203,7 @@
     if (!state.news) return;
     var cat = FEATURE_PATTERN[state.featureIdx % FEATURE_PATTERN.length];
     state.featureIdx++;
-    var it = nextFrom(cat, true) || nextFrom("business", true);
+    var it = pick(cat, true);
     if (!it) return;
     remember(it.id);
     state.featureCount++;
@@ -299,7 +312,7 @@
   var tick = { x: 0, w: 0, last: 0, pending: null };
   function tickerHTML() {
     var out = [];
-    var order = ["gcc", "hiring", "tech", "ta", "startup", "gcc", "hiring", "business", "tech", "startup"];
+    var order = ["gcc", "hiring", "business", "tech", "ta", "world", "startup", "gcc", "economy", "hiring", "tech", "business"];
     var used = {};
     for (var round = 0; round < 4; round++) {
       order.forEach(function (cat) {
