@@ -9,7 +9,12 @@ REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}
 while :; do
   started=$(date +%s)
   # Pick up any design/source changes pushed to main since the loop began
-  git fetch -q origin main && git reset -q --hard origin/main
+  # (fetch straight into FETCH_HEAD: works in the shallow checkout Actions gives us)
+  if git fetch --depth=1 origin "+refs/heads/main:refs/remotes/origin/main"; then
+    git reset -q --hard FETCH_HEAD && echo "code at $(git rev-parse --short HEAD)"
+  else
+    echo "could not fetch latest code, continuing with $(git rev-parse --short HEAD)"
+  fi
   [ -f site/news.json ] && unset PREVIOUS_URL   # after the first pass, carry over from the local copy
 
   if python scripts/build_news.py && [ -f site/news.json ]; then
