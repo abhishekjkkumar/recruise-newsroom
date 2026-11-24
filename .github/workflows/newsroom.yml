@@ -1,7 +1,8 @@
 name: Refresh newsroom
 
-# One run stays alive ~5h45m and republishes the news every 15 minutes (scripts/run_loop.sh).
-# Frequent schedule triggers make sure a new run is waiting whenever the previous one ends.
+# One run stays alive ~5h45m and republishes the news every 7-8 minutes (scripts/run_loop.sh).
+# Before it ends, each run starts the next one itself (GitHub's scheduler alone left gaps of hours).
+# The schedule below is only a backup in case that chain ever breaks.
 on:
   schedule:
     - cron: "*/30 * * * *"
@@ -11,6 +12,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: newsroom-loop
@@ -27,9 +29,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Note start time
+        run: echo "LOOP_STARTED=$(date +%s)" >> "$GITHUB_ENV"
       - name: Refresh and publish every 7-8 minutes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PREVIOUS_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/news.json
         # Run a copy: the loop updates the repo (including this script) while it runs
         run: cp scripts/run_loop.sh /tmp/run_loop.sh && bash /tmp/run_loop.sh
+      - name: Start the next run (keeps the newsroom refreshing around the clock)
+        # Only after a full-length run, so a broken run can never restart itself in a fast loop.
+        # The new run waits in the queue and starts the moment this one finishes.
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ran=$(( $(date +%s) - LOOP_STARTED ))
+          if [ "$ran" -ge 1800 ]; then
+            gh workflow run newsroom.yml --repo "$GITHUB_REPOSITORY" --ref main && echo "next run requested"
+          else
+            echo "run lasted only ${ran}s; not chaining (the backup schedule will start the next one)"
+          fi
