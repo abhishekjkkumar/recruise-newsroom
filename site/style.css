@@ -186,7 +186,7 @@ body {
 
 /* "Press OK for full screen" hint: shown for a few seconds on open, then fades */
 .fs-hint {
-  position: absolute; left: 50%; top: 470px; width: 640px; margin-left: -320px; z-index: 10;
+  position: absolute; left: 50%; top: 470px; width: 520px; margin-left: -260px; z-index: 10;
   padding: 22px 28px; text-align: center; font-size: 28px; font-weight: 700; color: #FAF7F0;
   background: rgba(38, 3, 93, .92); border: 1px solid #7747FF; opacity: 0;
   -webkit-transition: opacity .8s ease; transition: opacity .8s ease;
