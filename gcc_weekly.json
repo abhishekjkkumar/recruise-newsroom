@@ -1,0 +1,51 @@
+{
+  "_how_to_update": "Every Monday, when the GCC Index Weekly Intelligence Brief arrives: set week, week_of (the 'Week of' date, YYYY-MM-DD) and replace the items with that week's lines. 'title' is a short version for the TV (keep under ~90 characters), 'detail' is the fuller line. VERIFY FIRST: GCC Index summaries are AI-generated, so check every company, number and city against at least one news report (ET, BusinessLine, Business Standard, Mint, AIM...) and drop anything you cannot confirm; note the outlets in 'verified'. Monthly: update once a month from gccindex.in/monthly-insights. The TV hides weekly items 10 days after week_of and monthly items 40 days after month_start. The TV labels these 'GCC Research' with a small 'GCC Index' source line (their terms allow use with credit).",
+  "week": "2026-W47",
+  "week_of": "2026-11-16",
+  "url": "https://gccindex.in/insights",
+  "items": [
+    {
+      "label": "Lead signal",
+      "title": "11 GCC events this week: 5 new centres, 6 expansions, Bengaluru took 6",
+      "detail": "Eleven GCC events this week — five new centres and six expansions — with Bengaluru taking six of them.",
+      "verified": "Count is GCC Index's own figure. Underlying events confirmed: Hitachi, Shield AI, Apple, Intuit, Couchbase, Kelly (Bengaluru); Zurich, SEI, Protolabs (Hyderabad); Infinite Electronics (Pune)."
+    },
+    {
+      "label": "Market mover",
+      "title": "Bengaluru: new GCCs from Hitachi and Shield; Apple, Intuit, Couchbase and Kelly expand",
+      "detail": "Bengaluru took six of the eleven events: new centres from Hitachi and Shield, and expansions by Apple, Intuit, Couchbase and Kelly Services.",
+      "verified": "BusinessLine, CRN Asia (Kelly); DQ, Rediff (Hitachi); AIM, shield.ai (Shield AI); Intuit, TechGig (Intuit); DQ, CRN Asia (Couchbase); Economic Times (Apple)."
+    },
+    {
+      "label": "Company move",
+      "title": "Zurich opens its Hyderabad capability centre, aiming for ~1,000 people by mid-2028",
+      "detail": "Zurich Insurance Group inaugurated its Hyderabad capability centre bringing together technology, AI, data and engineering teams, and plans to grow it to around 1,000 colleagues by mid-2028.",
+      "verified": "BusinessLine, ETHRWorld, Analytics India Magazine, BW People (19 Nov 2026)."
+    },
+    {
+      "label": "Signal",
+      "title": "Big footprints: SEI's Hyderabad centre has room for 1,200; Apple opens a 14-floor Bengaluru office",
+      "detail": "SEI's expanded HITEC City centre has capacity for about 1,200 professionals, and Apple opened a new 14-floor office in Bengaluru.",
+      "verified": "Business Standard, Times of India, Deccan Chronicle (SEI); Economic Times, Deccan Herald (Apple). Removed Maersk Pune ~2,000 seats and Apple 1,000+ capacity: not found in news reports."
+    }
+  ],
+  "monthly": {
+    "month": "October 2026",
+    "month_start": "2026-10-01",
+    "url": "https://gccindex.in/monthly-insights",
+    "items": [
+      {
+        "label": "Month in focus",
+        "title": "October: 16 GCC moves (6 new centres, 10 expansions) and 1,160 jobs announced",
+        "detail": "Pune and Hyderabad level at five events each; financial services the largest sector. Momentum down 24% on September.",
+        "verified": "Monthly totals are GCC Index's own figures (shown credited)."
+      },
+      {
+        "label": "Top deal",
+        "title": "Kuehne+Nagel opens a 250-role tech centre in Chennai for its digital logistics products",
+        "detail": "Kuehne+Nagel inaugurated a Chennai Tech Centre with 250 roles to build and scale its digital logistics products, with Accenture supporting the launch and hiring.",
+        "verified": "Kuehne+Nagel press release, Logistics Insider, Indian Transport & Logistics (1 Oct 2026)."
+      }
+    ]
+  }
+}

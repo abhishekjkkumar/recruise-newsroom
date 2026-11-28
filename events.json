@@ -1,0 +1,68 @@
+{
+  "_how_to_update": "Upcoming industry events for the TV. Add an event only after checking its date and venue on the organiser's OWN website (not listing sites, which are often wrong). Fields: name, start (YYYY-MM-DD), end (optional), city, venue, topic (gcc / ta / tech / startup), about (one line), url, verified (where you checked and when). The TV starts showing an event 60 days before it begins, counts down ('in 12 days', 'Tomorrow', 'Today'), and hides it after it ends.",
+  "show_days_before": 60,
+  "items": [
+    {
+      "name": "Global Capability Centers Summit 2026",
+      "start": "2026-11-25",
+      "city": "Bengaluru",
+      "venue": "Sheraton Grand at Brigade Gateway",
+      "topic": "gcc",
+      "about": "The strategic gathering of GCC leaders, CXOs and AI innovators.",
+      "url": "https://bengalurugccsummit.com/",
+      "verified": "bengalurugccsummit.com, checked 23 Nov 2026"
+    },
+    {
+      "name": "NASSCOM INNOSCALE: Enterprise AI, Innovation to Impact",
+      "start": "2026-11-25",
+      "city": "Gurugram",
+      "venue": "",
+      "topic": "tech",
+      "about": "NASSCOM CoE's new flagship on scaling enterprise AI adoption.",
+      "url": "https://nasscom.in/events",
+      "verified": "nasscom.in/events, checked 23 Nov 2026"
+    },
+    {
+      "name": "TiE Global Summit 2026",
+      "start": "2026-12-13",
+      "end": "2026-12-15",
+      "city": "Indore",
+      "venue": "Brilliant Convention Centre",
+      "topic": "startup",
+      "about": "2,000+ founders, investors and business leaders from 20+ countries.",
+      "url": "https://tieglobalsummit.org/",
+      "verified": "tieglobalsummit.org, checked 23 Nov 2026"
+    },
+    {
+      "name": "3rd Annual Global Capability Centers India Summit 2026",
+      "start": "2026-12-17",
+      "city": "Mumbai",
+      "venue": "Radisson Blu Mumbai International Airport",
+      "topic": "gcc",
+      "about": "Senior GCC leaders, technology heads and transformation executives.",
+      "url": "https://thegccsummit.com/",
+      "verified": "thegccsummit.com (Inventicon), checked 23 Nov 2026"
+    },
+    {
+      "name": "NASSCOM Technology & Leadership Forum (NTLF) 2027",
+      "start": "2027-02-24",
+      "end": "2027-02-25",
+      "city": "Mumbai",
+      "venue": "Fairmont",
+      "topic": "tech",
+      "about": "35th edition of India's flagship technology and leadership forum.",
+      "url": "https://www.nasscom.in/ntlf/",
+      "verified": "nasscom.in/ntlf, checked 23 Nov 2026"
+    },
+    {
+      "name": "India HR Summit & Awards",
+      "start": "2027-06-03",
+      "city": "New Delhi",
+      "venue": "Vivanta by Taj, Dwarka",
+      "topic": "ta",
+      "about": "HR leaders on talent, hiring and HR technology.",
+      "url": "https://www.indiahrsummit.com/",
+      "verified": "indiahrsummit.com, checked 23 Nov 2026"
+    }
+  ]
+}
